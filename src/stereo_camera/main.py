@@ -107,7 +107,7 @@ class Stereo_Camera():
                intrinsics_config.getNode("D1").mat(), intrinsics_config.getNode("M2").mat(),\
                intrinsics_config.getNode("D2").mat()
 
-    def CalibCameras(self):
+    def calibCameras(self):
         R, T, R1, R2, P1, P2, Q, M1, D1, M2, D2 = self.loadCalibConfigs('config/extrinsics.yml',
                                                                         'config/intrinsics.yml')
         if self.left != None:
