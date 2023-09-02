@@ -72,9 +72,10 @@ class Camera:
 
 class Stereo_Camera():
     
-    def __init__(self):
+    def __init__(self, calib=False):
         self.left = None
         self.right = None
+        self.calib = calib
 
     def start(self, gstreamer_pipeline_list: list):
         self.left = Camera()
@@ -86,6 +87,9 @@ class Stereo_Camera():
     def read(self):
         _, left_image = self.left.read()
         _, right_image = self.right.read()
+        if self.calib is True:
+            left_image, right_image = self.calibCameras(left_image,right_image)
+
         camera_images = np.hstack((left_image, right_image))
         return camera_images
 
@@ -107,7 +111,7 @@ class Stereo_Camera():
                intrinsics_config.getNode("D1").mat(), intrinsics_config.getNode("M2").mat(),\
                intrinsics_config.getNode("D2").mat()
 
-    def calibCameras(self):
+    def calibCameras(self, left_image, right_image):
         R, T, R1, R2, P1, P2, Q, M1, D1, M2, D2 = self.loadCalibConfigs('config/extrinsics.yml',
                                                                         'config/intrinsics.yml')
         if self.left != None:
@@ -178,7 +182,7 @@ def run_cameras():
     
     window_title = "Dual CSI Cameras"
 
-    camera = Stereo_Camera()
+    camera = Stereo_Camera(calib=True)
     camera.start(gstreamer_pipeline(
             sensor_id=0,
             capture_width=1280,
