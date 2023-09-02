@@ -89,14 +89,14 @@ class Stereo_Camera():
         camera_images = np.hstack((left_image, right_image))
         return camera_images
 
-    def checkVideoCapture(self): -> bool
-        if camera.left.video_capture.isOpened() and\
-            camera.right.video_capture.isOpened():
+    def checkVideoCapture(self):
+        if self.left.video_capture.isOpened() and\
+            self.right.video_capture.isOpened():
             return True
         else: return False
 
-    def loadCalibConfigs(self, extrinsics_path='config/extrinsics.yml': str,
-                               intrinsics_path='config/intrinsics.yml': str):
+    def loadCalibConfigs(self, extrinsics_path='config/extrinsics.yml',
+                               intrinsics_path='config/intrinsics.yml'):
         extrinsics_config = cv2.FileStorage(extrinsics_path, cv2.FILE_STORAGE_READ)
         intrinsics_config = cv2.FileStorage(intrinsics_path, cv2.FILE_STORAGE_READ)
 
@@ -113,7 +113,6 @@ class Stereo_Camera():
         if self.left != None:
             height, width, channel = left_image.shape
 
-            # Undistortion and Rectification part!
             leftMapX, leftMapY = cv2.initUndistortRectifyMap(M1, D1, R1, P1, (width, height), cv2.CV_32FC1)
             left_rectified = cv2.remap(left_image, leftMapX, leftMapY, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
             rightMapX, rightMapY = cv2.initUndistortRectifyMap(M2, D2, R2, P2, (width, height), cv2.CV_32FC1)
@@ -138,7 +137,7 @@ def gstreamer_pipeline(
     display_height=360,
     framerate=30,
     flip_method=0,
-): -> list[str]
+):
     return [(
         "nvarguscamerasrc sensor-id=%d ! "
         "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! "
