@@ -14,7 +14,6 @@
 import cv2
 import threading
 import numpy as np
-from multiprocessing import Process, Lock
 
 class Camera:
 
@@ -25,7 +24,6 @@ class Camera:
         self.running = False
         self.read_thread = None
         self.read_lock = threading.Lock()
-        #self.read_lock = Lock()
         
     def start(self, gstreamer_pipeline_string: str):
         try:
@@ -36,7 +34,6 @@ class Camera:
             if self.video_capture != None:
                 self.running = True
                 self.read_thread = threading.Thread(target=self.updateFrame)
-                #self.read_thread = Process(target=self.updateFrame)
                 self.read_thread.start()
 
         except RuntimeError:
@@ -71,7 +68,7 @@ class Camera:
         
 
 class Stereo_Camera():
-    
+
     def __init__(self, calib=False):
         self.left = None
         self.right = None
@@ -181,7 +178,6 @@ def gstreamer_pipeline(
 def run_cameras():
     
     window_title = "Dual CSI Cameras"
-
     camera = Stereo_Camera(calib=True)
     camera.start(gstreamer_pipeline(
             sensor_id=0,
