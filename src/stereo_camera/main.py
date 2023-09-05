@@ -87,8 +87,7 @@ class Stereo_Camera():
         if self.calib is True:
             left_image, right_image = self.calibCameras(left_image,right_image)
 
-        camera_images = np.hstack((left_image, right_image))
-        return camera_images
+        return left_image, right_image
 
     def checkVideoCapture(self):
         if self.left.video_capture.isOpened() and\
@@ -166,7 +165,8 @@ def run_cameras():
         cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
         try:
             while True:
-                camera_images = camera.read()
+                left_image, right_image = camera.read()
+                camera_images = np.hstack((left_image, right_image))
 
                 if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
                     cv2.imshow(window_title, camera_images)
