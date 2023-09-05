@@ -74,12 +74,12 @@ class Stereo_Camera():
         self.right = None
         self.calib = calib
 
-    def start(self, gstreamer_pipeline_list: list):
+    def start(self):
         self.left = Camera()
-        self.left.start(gstreamer_pipeline_list[0])
+        self.left.start(gstreamer_pipeline(sensor_id=0))
 
         self.right = Camera()
-        self.right.start(gstreamer_pipeline_list[1])
+        self.right.start(gstreamer_pipeline(sensor_id=1))
 
     def read(self):
         _, left_image = self.left.read()
@@ -139,13 +139,12 @@ def gstreamer_pipeline(
     framerate=30,
     flip_method=0,
 ):
-    return [(
-        "nvarguscamerasrc sensor-id=%d ! "
-        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! "
-        "nvvidconv flip-method=%d ! "
-        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
-        "videoconvert ! "
-        "video/x-raw, format=(string)BGR ! appsink"
+    return "nvarguscamerasrc sensor-id=%d ! " \
+        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! " \
+        "nvvidconv flip-method=%d ! " \
+        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! " \
+        "videoconvert ! " \
+        "video/x-raw, format=(string)BGR ! appsink" \
         % (
             sensor_id,
             capture_width,
@@ -155,38 +154,13 @@ def gstreamer_pipeline(
             display_width,
             display_height,
         )
-    ),
-    (
-        "nvarguscamerasrc sensor-id=%d ! "
-        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d, framerate=(fraction)%d/1 ! "
-        "nvvidconv flip-method=%d ! "
-        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
-        "videoconvert ! "
-        "video/x-raw, format=(string)BGR ! appsink"
-        % (
-            sensor_id + 1,
-            capture_width,
-            capture_height,
-            framerate,
-            flip_method,
-            display_width,
-            display_height,
-        )
-    )]
-
+    
 
 def run_cameras():
     
     window_title = "Dual CSI Cameras"
     camera = Stereo_Camera(calib=True)
-    camera.start(gstreamer_pipeline(
-            sensor_id=0,
-            capture_width=1280,
-            capture_height=720,
-            flip_method=0,
-            display_width=640,
-            display_height=360,
-        ))
+    camera.start()
 
     if camera.checkVideoCapture():
         cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
