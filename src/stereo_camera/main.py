@@ -97,6 +97,15 @@ class Stereo_Camera():
         else: 
             return False
 
+    def getWidth(self):
+        return 2*int(self.left.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+
+    def getHeight(self):
+        return int(self.left.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    def getFPS(self):
+        return int(self.left.video_capture.get(cv2.CAP_PROP_FPS))
+
     def loadCalibConfigs(self, extrinsics_path='config/extrinsics.yml',
                                intrinsics_path='config/intrinsics.yml'):
         extrinsics_config = cv2.FileStorage(extrinsics_path, cv2.FILE_STORAGE_READ)
@@ -122,12 +131,12 @@ class Stereo_Camera():
             height, width, channel = left_image.shape
 
             leftMapX, leftMapY = cv2.initUndistortRectifyMap(M1, D1, R1, P1, 
-                                                            (width, height), 
+                                                             (width, height), 
                                                              cv2.CV_32FC1)
             left_rectified = cv2.remap(left_image, leftMapX, leftMapY, 
                                        cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
             rightMapX, rightMapY = cv2.initUndistortRectifyMap(M2, D2, R2, P2, 
-                                                              (width, height), 
+                                                               (width, height), 
                                                                cv2.CV_32FC1)
             right_rectified = cv2.remap(right_image, rightMapX, rightMapY, 
                                         cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
@@ -174,6 +183,8 @@ def run_cameras():
     window_title = "Dual CSI Cameras"
     camera = Stereo_Camera(calib=True)
     camera.start()
+
+    print("*"*50, camera.getWidth())
 
     if camera.checkVideoCapture():
         cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
