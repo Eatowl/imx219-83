@@ -77,10 +77,10 @@ class Stereo_Camera():
 
     def start(self):
         self.left = Camera()
-        self.left.start(gstreamer_pipeline(sensor_id=0))
+        self.left.start(self.gstreamer_pipeline(sensor_id=0))
 
         self.right = Camera()
-        self.right.start(gstreamer_pipeline(sensor_id=1))
+        self.right.start(self.gstreamer_pipeline(sensor_id=1))
 
     def read(self):
         _, left_image = self.left.read()
@@ -145,69 +145,32 @@ class Stereo_Camera():
         else:
             return False
 
+    def gstreamer_pipeline(self,
+                           sensor_id=0,
+                           capture_width=1280,
+                           capture_height=720,
+                           display_width=640,
+                           display_height=360,
+                           framerate=30,
+                           flip_method=0):
+        return "nvarguscamerasrc sensor-id=%d ! "\
+            "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d,"\
+            "framerate=(fraction)%d/1 ! nvvidconv flip-method=%d ! " \
+            "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "\
+            "videoconvert ! "\
+            "video/x-raw, format=(string)BGR ! appsink"\
+            % (
+                sensor_id,
+                capture_width,
+                capture_height,
+                framerate,
+                flip_method,
+                display_width,
+                display_height,
+            )
+
     def stop(self):
         self.left.stop()
         self.left.release()
         self.right.stop()
         self.right.release()
-
-
-def gstreamer_pipeline(
-    sensor_id=0,
-    capture_width=1280,
-    capture_height=720,
-    display_width=640,
-    display_height=360,
-    framerate=30,
-    flip_method=0,
-):
-    return "nvarguscamerasrc sensor-id=%d ! "\
-        "video/x-raw(memory:NVMM), width=(int)%d, height=(int)%d,"\
-        "framerate=(fraction)%d/1 ! nvvidconv flip-method=%d ! " \
-        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "\
-        "videoconvert ! "\
-        "video/x-raw, format=(string)BGR ! appsink"\
-        % (
-            sensor_id,
-            capture_width,
-            capture_height,
-            framerate,
-            flip_method,
-            display_width,
-            display_height,
-        )
-    
-
-def run_cameras():
-    
-    window_title = "Dual CSI Cameras"
-    camera = Stereo_Camera(calib=True)
-    camera.start()
-
-    print("*"*50, camera.getWidth())
-
-    if camera.checkVideoCapture():
-        cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
-        try:
-            while True:
-                left_image, right_image = camera.read()
-                camera_images = np.hstack((left_image, right_image))
-
-                if cv2.getWindowProperty(window_title, cv2.WND_PROP_AUTOSIZE) >= 0:
-                    cv2.imshow(window_title, camera_images)
-                else:
-                    break
-
-                keyCode = cv2.waitKey(30) & 0xFF
-                if keyCode == 27:
-                    break
-        finally:
-            camera.stop()
-        cv2.destroyAllWindows()
-    else:
-        print("Error: Unable to open camera")
-        camera.stop()
-
-
-if __name__ == "__main__":
-    run_cameras()
